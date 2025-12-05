@@ -8,6 +8,8 @@ from litestar.openapi.plugins import ScalarRenderPlugin, SwaggerRenderPlugin
 from app.config import settings
 from app.controllers.auth import AuthController
 from app.controllers.book import BookController
+from app.controllers.category import CategoryController
+from app.controllers.review import ReviewController
 from app.controllers.loan import LoanController
 from app.controllers.user import UserController
 from app.db import sqlalchemy_plugin
@@ -33,8 +35,10 @@ app = Litestar(
     route_handlers=[
         UserController,
         BookController,
+        CategoryController,
         LoanController,
         AuthController,
+        ReviewController,
     ],
     openapi_config=openapi_config,
     cors_config=cors_config,

@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from datetime import date, datetime
 
 from advanced_alchemy.base import BigIntAuditBase
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, Table, Column, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
@@ -32,6 +32,11 @@ class Book(BigIntAuditBase):
     published_year: Mapped[int]
 
     loans: Mapped[list["Loan"]] = relationship(back_populates="book")
+    # many-to-many categories
+    categories: Mapped[list["Category"]] = relationship(
+        secondary=lambda: book_categories,
+        back_populates="books",
+    )
 
 
 class Loan(BigIntAuditBase):
@@ -46,6 +51,43 @@ class Loan(BigIntAuditBase):
 
     user: Mapped[User] = relationship(back_populates="loans")
     book: Mapped[Book] = relationship(back_populates="loans")
+
+
+class Review(BigIntAuditBase):
+    """Review model for user ratings and comments on books."""
+
+    __tablename__ = "reviews"
+
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    book_id: Mapped[int] = mapped_column(ForeignKey("books.id"))
+    rating: Mapped[int] = mapped_column()
+    comment: Mapped[str | None]
+
+    user: Mapped[User] = relationship("User")
+    book: Mapped[Book] = relationship("Book")
+
+
+# Association table for Book <-> Category many-to-many
+book_categories = Table(
+    "book_categories",
+    BigIntAuditBase.metadata,
+    Column("book_id", Integer, ForeignKey("books.id"), primary_key=True),
+    Column("category_id", Integer, ForeignKey("categories.id"), primary_key=True),
+)
+
+
+class Category(BigIntAuditBase):
+    """Book category model."""
+
+    __tablename__ = "categories"
+
+    name: Mapped[str] = mapped_column(unique=True)
+    description: Mapped[str | None]
+
+    books: Mapped[list[Book]] = relationship(
+        secondary=lambda: book_categories,
+        back_populates="categories",
+    )
 
 
 @dataclass

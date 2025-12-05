@@ -14,6 +14,7 @@ from app.controllers import duplicate_error_handler, not_found_error_handler
 from app.dtos.book import BookCreateDTO, BookReadDTO, BookUpdateDTO
 from app.models import Book, BookStats
 from app.repositories.book import BookRepository, provide_book_repo
+from app.models import Category
 
 
 class BookController(Controller):
@@ -60,9 +61,52 @@ class BookController(Controller):
         data: DTOData[Book],
         books_repo: BookRepository,
     ) -> Book:
-        """Update a book by ID."""
-        book, _ = books_repo.get_and_update(match_fields="id", id=id, **data.as_builtins())
+        """Update a book by ID.
+        Maneja explícitamente la relación many-to-many `categories` para evitar errores de duplicado.
+        """
+        # Cargar libro existente
+        book = books_repo.get(id)
 
+        payload = data.as_builtins()
+
+        # Actualizar campos simples si están presentes en el payload
+        for field in ("title", "author", "isbn", "pages", "published_year"):
+            if field in payload and payload[field] is not None:
+                setattr(book, field, payload[field])
+
+        # Actualizar relación de categorías si viene en el payload
+        if "categories" in payload and payload["categories"] is not None:
+            categories_payload = payload["categories"]
+            # Convertir a instancias de Category basadas en id
+            session = books_repo.session  # usar la sesión del repositorio
+            new_categories: list[Category] = []
+            for c in categories_payload:
+                # c puede ser dict o instancia Category
+                if isinstance(c, dict):
+                    cid = c.get("id")
+                    name = c.get("name")
+                else:
+                    cid = getattr(c, "id", None)
+                    name = getattr(c, "name", None)
+
+                if cid is not None:
+                    existing = session.get(Category, cid)
+                    if existing:
+                        new_categories.append(existing)
+                        continue
+                if name is not None:
+                    existing = session.query(Category).filter(Category.name == name).first()
+                    if existing:
+                        new_categories.append(existing)
+                    else:
+                        new_categories.append(Category(name=name))
+            book.categories = new_categories
+
+        # Commit de los cambios usando el repositorio
+        session = books_repo.session
+        session.add(book)
+        session.commit()
+        session.refresh(book)
         return book
 
     @delete("/{id:int}")
