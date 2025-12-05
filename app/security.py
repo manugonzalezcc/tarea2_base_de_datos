@@ -25,5 +25,5 @@ oauth2_auth = OAuth2PasswordBearerAuth[User](
     retrieve_user_handler=retrieve_user_handler,
     token_secret=settings.jwt_secret,
     token_url="/auth/login",
-    exclude=["/auth/login", "/schema"],
+    exclude=["/auth/login", "/schema", "/users"],  # <-- agregada /users temporalmente
 )

@@ -2,6 +2,7 @@
 
 from litestar.app import Litestar
 from litestar.openapi import OpenAPIConfig
+from litestar.config.cors import CORSConfig
 from litestar.openapi.plugins import ScalarRenderPlugin, SwaggerRenderPlugin
 
 from app.config import settings
@@ -21,6 +22,13 @@ openapi_config = OpenAPIConfig(
     ],
 )
 
+cors_config = CORSConfig(
+    allow_origins=["http://localhost:5173"],
+    allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["*"],
+    allow_credentials=True,
+)
+
 app = Litestar(
     route_handlers=[
         UserController,
@@ -29,6 +37,7 @@ app = Litestar(
         AuthController,
     ],
     openapi_config=openapi_config,
+    cors_config=cors_config,
     debug=settings.debug,
     plugins=[sqlalchemy_plugin],
     on_app_init=[oauth2_auth.on_app_init],
