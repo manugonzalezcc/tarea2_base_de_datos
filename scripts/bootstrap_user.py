@@ -11,6 +11,7 @@ from app.models import User
 USERNAME = "bootstrap_user"
 PASSWORD = "MiPassInicial123"
 FULLNAME = "Usuario Inicial"
+EMAIL = "bootstrap_user@example.com"
 
 if __name__ == "__main__":
     with sqlalchemy_config.get_session() as session:
@@ -22,6 +23,7 @@ if __name__ == "__main__":
             user = User(
                 username=USERNAME,
                 fullname=FULLNAME,
+                email=EMAIL,
                 password=password_hasher.hash(PASSWORD),
             )
             repo.add(user)

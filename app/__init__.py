@@ -8,13 +8,15 @@ from litestar.openapi.plugins import ScalarRenderPlugin, SwaggerRenderPlugin
 from app.config import settings
 from app.controllers.auth import AuthController
 from app.controllers.book import BookController
+from app.controllers.category import CategoryController
 from app.controllers.loan import LoanController
+from app.controllers.review import ReviewController
 from app.controllers.user import UserController
 from app.db import sqlalchemy_plugin
 from app.security import oauth2_auth
 
 openapi_config = OpenAPIConfig(
-    title="Mi API",
+    title="API Gestión de Biblioteca",
     version="0.1",
     render_plugins=[
         ScalarRenderPlugin(),
@@ -34,6 +36,8 @@ app = Litestar(
         UserController,
         BookController,
         LoanController,
+        CategoryController,
+        ReviewController,
         AuthController,
     ],
     openapi_config=openapi_config,

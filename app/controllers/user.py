@@ -1,5 +1,6 @@
 """Controller for User endpoints."""
 
+import re
 from typing import Sequence
 
 from advanced_alchemy.exceptions import DuplicateKeyError, NotFoundError
@@ -44,6 +45,11 @@ class UserController(Controller):
     ) -> User:
         """Create a new user."""
 
+        payload = data.as_builtins()
+        email = payload.get("email")
+        if not isinstance(email, str) or not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email):
+            raise HTTPException(status_code=400, detail="email inválido")
+
         return users_repo.add_with_hashed_password(data)
 
     @patch("/{id:int}", dto=UserUpdateDTO)
@@ -54,7 +60,16 @@ class UserController(Controller):
         users_repo: UserRepository,
     ) -> User:
         """Update a user by ID."""
-        user, _ = users_repo.get_and_update(match_fields="id", id=id, **data.as_builtins())
+
+        patch_data = data.as_builtins()
+        if "email" in patch_data:
+            email = patch_data.get("email")
+            if email is not None and (
+                not isinstance(email, str) or not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email)
+            ):
+                raise HTTPException(status_code=400, detail="email inválido")
+
+        user, _ = users_repo.get_and_update(match_fields="id", id=id, **patch_data)
 
         return user
 

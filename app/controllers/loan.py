@@ -1,5 +1,7 @@
 """Controller for Loan endpoints."""
 
+from datetime import timedelta
+from decimal import Decimal
 from typing import Sequence
 
 from advanced_alchemy.exceptions import DuplicateKeyError, NotFoundError
@@ -30,10 +32,35 @@ class LoanController(Controller):
         """Get all loans."""
         return loans_repo.list()
 
+    @get("/active")
+    async def list_active_loans(self, loans_repo: LoanRepository) -> Sequence[Loan]:
+        """Get loans with status ACTIVE."""
+
+        return loans_repo.get_active_loans()
+
+    @get("/overdue")
+    async def list_overdue_loans(self, loans_repo: LoanRepository) -> Sequence[Loan]:
+        """Get overdue loans and mark them as OVERDUE."""
+
+        return loans_repo.get_overdue_loans()
+
+    @get("/user/{user_id:int}")
+    async def get_user_loan_history(self, user_id: int, loans_repo: LoanRepository) -> Sequence[Loan]:
+        """Get full loan history of a user."""
+
+        return loans_repo.get_user_loan_history(user_id=user_id)
+
     @get("/{id:int}")
     async def get_loan(self, id: int, loans_repo: LoanRepository) -> Loan:
         """Get a loan by ID."""
         return loans_repo.get(id)
+
+    @get("/{id:int}/fine")
+    async def get_loan_fine(self, id: int, loans_repo: LoanRepository) -> dict[str, str]:
+        """Calculate fine for a loan."""
+
+        fine: Decimal = loans_repo.calculate_fine(loan_id=id)
+        return {"fine_amount": str(fine)}
 
     @post("/", dto=LoanCreateDTO)
     async def create_loan(
@@ -43,7 +70,15 @@ class LoanController(Controller):
     ) -> Loan:
         """Create a new loan."""
 
-        return loans_repo.add(data.create_instance())
+        instance = data.create_instance()
+        instance.due_date = instance.loan_dt + timedelta(days=14)
+        return loans_repo.add(instance)
+
+    @post("/{id:int}/return")
+    async def return_loan_book(self, id: int, loans_repo: LoanRepository) -> Loan:
+        """Process return of a loan."""
+
+        return loans_repo.return_book(loan_id=id)
 
     @patch("/{id:int}", dto=LoanUpdateDTO)
     async def update_loan(
