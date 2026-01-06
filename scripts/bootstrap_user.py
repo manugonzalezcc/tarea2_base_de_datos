@@ -8,10 +8,10 @@ from app.db import sqlalchemy_config
 from app.repositories.user import UserRepository, password_hasher
 from app.models import User
 
-USERNAME = "bootstrap_user"
-PASSWORD = "MiPassInicial123"
-FULLNAME = "Usuario Inicial"
-EMAIL = "bootstrap_user@example.com"
+USERNAME = os.getenv("BOOTSTRAP_USERNAME", "bootstrap_user")
+PASSWORD = os.getenv("BOOTSTRAP_PASSWORD", "MiPassInicial123")
+FULLNAME = os.getenv("BOOTSTRAP_FULLNAME", "Usuario Inicial")
+EMAIL = os.getenv("BOOTSTRAP_EMAIL", "bootstrap_user@example.com")
 
 if __name__ == "__main__":
     with sqlalchemy_config.get_session() as session:

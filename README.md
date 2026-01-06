@@ -48,6 +48,10 @@ Alternativa (sin cargar dataset): puedes crear un usuario inicial con el script:
 uv run python scripts/bootstrap_user.py
 ```
 
+Credenciales de demo (puedes cambiarlas con variables de entorno):
+- `BOOTSTRAP_USERNAME` (default: `bootstrap_user`)
+- `BOOTSTRAP_PASSWORD` (default: `MiPassInicial123`)
+
 Si tu PostgreSQL corre en WSL, este comando normalmente se ejecuta en WSL. Si corre en Windows, ejecútalo en PowerShell.
 
 También puedes generar tu propio respaldo desde tu BD real con:

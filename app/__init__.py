@@ -18,6 +18,7 @@ from app.security import oauth2_auth
 openapi_config = OpenAPIConfig(
     title="API Gestión de Biblioteca",
     version="0.1",
+    security=[{"BearerToken": []}],
     render_plugins=[
         ScalarRenderPlugin(),
         SwaggerRenderPlugin(),
